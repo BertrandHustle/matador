@@ -1,4 +1,5 @@
 # Native
+from __future__ import annotations
 import os
 import re
 from contextlib import suppress
@@ -8,15 +9,15 @@ from requests.exceptions import RequestException
 from prettyconf import Configuration
 from prettyconf.loaders import Environment, EnvFile
 
-project_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '.'))
-env_file = os.path.join(project_path, 'config', '.env')
+project_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+env_file = os.path.join(project_path, '../config', '.env')
 config = Configuration(loaders=[Environment(), EnvFile(filename=env_file)])
 
 
 class Question:
     def __init__(self, question_json):
         # text with html links separated out
-        scrubbed_text = Question.separate_html(question_json['question'])
+        scrubbed_text = Question._separate_html(question_json['question'])
         self.text = ''
         self.valid_links = []
         if type(scrubbed_text) == str:
@@ -30,8 +31,15 @@ class Question:
         self.answer = question_json['answer']
         self.date = question_json['air_date']
 
+    def to_tuple(self) -> tuple:
+        """
+        returns a tuple containing a question's category, text, and answer, for training purposes
+        :return: tuple
+        """
+        return self.category, self.text, self.answer
+
     @staticmethod
-    def separate_html(question_text):
+    def _separate_html(question_text):
         """
         separates html links from questions. returns a tuple of the question text and link if link is valid,
         otherwise just returns the text
