@@ -9,8 +9,7 @@ from prettyconf import Configuration
 from prettyconf.loaders import Environment, EnvFile
 
 project_path = os.path.realpath(os.path.join(os.path.dirname(__file__), '.'))
-#TODO: fix slashes with proper pathing
-env_file = f"{project_path}/config/.env"
+env_file = os.path.join(project_path, 'config', '.env')
 config = Configuration(loaders=[Environment(), EnvFile(filename=env_file)])
 
 
