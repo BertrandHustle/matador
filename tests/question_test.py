@@ -1,17 +1,23 @@
 # Native
+import json
 import os
 # Third Party
 import pytest
 # Project
-import Question
+from Question import Question
 
-test_question = Question.Question(os.path.join('fixtures', 'test_questions.json'))
+@pytest.fixture
+def test_questions():
+    with open(os.path.join('fixtures', 'test_questions.json')) as test_question_json:
+        test_questions = []
+        for question_json in json.load(test_question_json):
+            test_questions.append(Question(question_json))
+        return test_questions
 
 
-def test_get_average_question_len():
-    test_question.get_average_question_len()
+def test_test_questions(test_questions):
+    print(test_questions)
+    for q in test_questions:
+        print(q.text, q.category)
 
 
-def test_get_random_question():
-    test_question_json = test_question.get_random_question()
-    assert test_question_json

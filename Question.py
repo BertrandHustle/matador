@@ -1,7 +1,9 @@
 # Native
-import json
 import os
-from random import randint
+import re
+from contextlib import suppress
+from requests import get as get_http_code
+from requests.exceptions import RequestException
 # Third-Party
 from prettyconf import Configuration
 from prettyconf.loaders import Environment, EnvFile
@@ -13,8 +15,21 @@ config = Configuration(loaders=[Environment(), EnvFile(filename=env_file)])
 
 
 class Question:
-    def __init__(self, question_json_filepath: str = None):
-        self.question_json_filepath = question_json_filepath or config('QUESTIONS_JSON_FILEPATH')
+    def __init__(self, question_json):
+        # text with html links separated out
+        scrubbed_text = Question.separate_html(question_json['question'])
+        self.text = ''
+        self.valid_links = []
+        if type(scrubbed_text) == str:
+            self.text = scrubbed_text
+        # if there are valid html links included in question text
+        elif type(scrubbed_text) == list:
+            self.text = scrubbed_text[0]
+            self.valid_links = scrubbed_text[1:]
+        self.value = question_json['value']
+        self.category = question_json['category']
+        self.answer = question_json['answer']
+        self.date = question_json['air_date']
 
     @staticmethod
     def separate_html(question_text):
@@ -49,28 +64,3 @@ class Question:
                 return [question_text] + valid_links
             else:
                 return question_text
-
-    def get_random_question(self):
-        # gets random question from given json file
-        total_bytes = os.stat(self.question_json_filepath).st_size
-        question_json_string = ''
-        with open(self.question_json_filepath) as questions_json:
-            questions_json.seek(randint(0, total_bytes))
-            cur_char = questions_json.read(1)
-            # this only works because this is a 1-dimensional json
-            if cur_char != '{':
-                while cur_char != '{':
-                    # read until we get to the start of a question json object
-                    cur_char = questions_json.read(1)
-            question_json_string += cur_char
-            while cur_char != '}':
-                cur_char = questions_json.read(1)
-                question_json_string += cur_char
-        return json.loads(question_json_string)
-
-    @staticmethod
-    def get_average_question_len():
-        with open(config('QUESTIONS_JSON_FILEPATH')) as questions_json:
-            question_json = json.loads(questions_json.read())
-            pass
-

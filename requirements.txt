@@ -1,2 +1,3 @@
 prettyconf
-scikit-learn
+pytest
+spacy
