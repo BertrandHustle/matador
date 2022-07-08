@@ -9,12 +9,17 @@ from src.Question import Question
 class CatTrainer:
     def __init__(self):
         self.nlp = spacy.blank('en')
-        self.category = self.nlp.create_pipe('textcat')
-        self.category.add_label('History')
-        self.nlp.add_pipe('textcat')
+        self.textcat = self.nlp.add_pipe('textcat')
+        self.textcat.add_label('History')
+        self.textcat.add_label('Not History')
 
-    def train_questions(self, questions):
+    def train_questions(self, questions: list[Question]):
         self.nlp.begin_training()
 
-        for itn in range(100):
-            random.shuffle()
+        # text of the questions themselves
+        question_content = [self.nlp(q.text) for q in questions]
+
+        for question in self.textcat.pipe(question_content, batch_size=10):
+            pass
+
+        return question_content
